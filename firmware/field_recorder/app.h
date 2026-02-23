@@ -3,31 +3,31 @@
 #include "config.h"
 
 class Application {
-    public:
-        Application();
+public:
+    Application();
 
-        // Lifecycle methods
-        void setup();
-        void update();
+    // Lifecycle methods
+    void setup();
+    void update();
 
-        // Field Recorder Commands
-        void arm();
-        void disarm();
-        void startRecording();
-        void stopRecording();
-        void startPlayback();
-        void stopPlayback();
+    // Field Recorder Commands
+    void arm();
+    void disarm();
+    void startRecording();
+    void stopRecording();
+    void startPlayback();
+    void stopPlayback();
 
-        // Query current state
-        DeviceState getState() const;
+    // Query current state
+    DeviceState getState() const;
 
-    private:
-        // Member variable
-        DeviceState currentState;
+private:
+    // Member variable
+    DeviceState currentState;
 
-        // Private helper methods
-        void handleIdleUpdate();
-        void handleArmedUpdate();
-        void handleRecordingUpdate();
-        void handlePlaybackUpdate();
+    // Private helper methods
+    void handleIdleUpdate();
+    void handleArmedUpdate();
+    void handleRecordingUpdate();
+    void handlePlaybackUpdate();
 };
