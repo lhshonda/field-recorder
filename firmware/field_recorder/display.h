@@ -9,7 +9,6 @@
 class Application;
 
 // OLED Status Display
-
 class Display {
 public:
     Display();

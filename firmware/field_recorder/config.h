@@ -1,6 +1,10 @@
 #pragma once
 #include <Arduino.h>
 
+// Input Pins
+#define RECORD_BUTTON_PIN 2
+#define BUTTON_DEBOUNCE_MS 30
+
 // Serial Port Communicatio Speed (Default: 115200 baud)
 #define SERIAL_BAUD_RATE 115200
 

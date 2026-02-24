@@ -16,8 +16,8 @@ void setup() {
 }
 
 void loop() {
-    g_app.update();
     g_console.update();
+    g_app.update();
     
     // Small delay for stability
     delay(10);

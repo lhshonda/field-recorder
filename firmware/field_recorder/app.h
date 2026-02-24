@@ -29,9 +29,17 @@ private:
     Storage storage;
     Display display;
 
+    // Button Handling
+    bool lastRecordButtonState;
+    bool stableRecordButtonState;
+    uint32_t lastDebounceMs;
+
     // Private helper methods
     void handleIdleUpdate();
     void handleArmedUpdate();
     void handleRecordingUpdate();
     void handlePlaybackUpdate();
+
+    // New helper method to check the record button state and handle debouncing
+    void handleRecordButton();
 };

@@ -2,13 +2,22 @@
 
 // Constructor initializes the device state to IDLE
 // Initializer list is more efficient here than assigning in the constructor body
-Application::Application() : currentState(DeviceState::IDLE) {
+Application::Application() : currentState(DeviceState::IDLE), 
+    lastDebounceMs(0) {
 }
 
 // Placeholder for future setup code, such as initializing SD card, audio hardware, etc.
 void Application::setup() {
-    Serial.println("Intializing Field Recorder...");
+    Serial.println("Initializing Field Recorder...");
 
+    // Internal resistors with INPUT_PULLUP means the button will read HIGH when not pressed and LOW when pressed
+    pinMode(RECORD_BUTTON_PIN, INPUT_PULLUP);
+    bool initial = digitalRead(RECORD_BUTTON_PIN);
+    lastRecordButtonState = initial;
+    stableRecordButtonState = initial;
+    lastDebounceMs = millis();
+
+    // ERROR Handling
     if (!storage.init()) {
         Serial.println("Error: Storage initialization failed!");
     }
@@ -21,23 +30,38 @@ void Application::setup() {
 // Call specific handler based on recorder state.
 void Application::update() {
     switch (currentState) {
-        case DeviceState::IDLE:
-            handleIdleUpdate();
-            break;
-        case DeviceState::ARMED:
-            handleArmedUpdate();
-            break;
-        case DeviceState::RECORDING:
-            handleRecordingUpdate();
-            break;
-        case DeviceState::PLAYBACK:
-            handlePlaybackUpdate();
-            break;
+        case DeviceState::IDLE: handleIdleUpdate(); break;
+        case DeviceState::ARMED: handleArmedUpdate(); break;
+        case DeviceState::RECORDING: handleRecordingUpdate(); break;
+        case DeviceState::PLAYBACK: handlePlaybackUpdate(); break;
     }
     
     // Update the display with current state and storage status
-    // 'this' pointer is used to pass the current instance of Application to the display for status updates
+    handleRecordButton();
     display.update(this);
+}
+
+// New method to handle record button state and debounce logic
+void Application::handleRecordButton() {
+    bool reading = digitalRead(RECORD_BUTTON_PIN);
+
+    if (reading != lastRecordButtonState) {
+        // Reset the debounce timer mark
+        lastDebounceMs = millis();
+        lastRecordButtonState = reading;
+    }
+
+    if ((millis() - lastDebounceMs) > BUTTON_DEBOUNCE_MS) {
+        if (stableRecordButtonState != reading) {
+            stableRecordButtonState = reading;
+
+            if (stableRecordButtonState == LOW) {
+                if (currentState == DeviceState::IDLE) arm();
+                else if (currentState == DeviceState::ARMED) startRecording();
+                else if (currentState == DeviceState::RECORDING) stopRecording();
+            }
+        }
+    }
 }
 
 // State transition methods
