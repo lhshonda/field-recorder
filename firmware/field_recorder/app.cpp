@@ -12,6 +12,10 @@ void Application::setup() {
     if (!storage.init()) {
         Serial.println("Error: Storage initialization failed!");
     }
+
+    if (!display.init()) {
+        Serial.println("Error: Display initialization failed!");
+    }
 }
 
 // Call specific handler based on recorder state.
@@ -29,7 +33,11 @@ void Application::update() {
         case DeviceState::PLAYBACK:
             handlePlaybackUpdate();
             break;
-    }    
+    }
+    
+    // Update the display with current state and storage status
+    // 'this' pointer is used to pass the current instance of Application to the display for status updates
+    display.update(this);
 }
 
 // State transition methods

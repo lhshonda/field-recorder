@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include "storage.h"
+#include "display.h"
 
 class Application {
 public:
@@ -26,6 +27,7 @@ private:
     // Member variable
     DeviceState currentState;
     Storage storage;
+    Display display;
 
     // Private helper methods
     void handleIdleUpdate();
