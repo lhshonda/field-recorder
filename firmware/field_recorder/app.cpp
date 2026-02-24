@@ -8,6 +8,10 @@ Application::Application() : currentState(DeviceState::IDLE) {
 // Placeholder for future setup code, such as initializing SD card, audio hardware, etc.
 void Application::setup() {
     Serial.println("Intializing Field Recorder...");
+
+    if (!storage.init()) {
+        Serial.println("Error: Storage initialization failed!");
+    }
 }
 
 // Call specific handler based on recorder state.
@@ -44,11 +48,13 @@ void Application::disarm() {
 void Application::startRecording() {
     if (currentState == DeviceState::ARMED) {
         currentState = DeviceState::RECORDING;
+        storage.startRecording("sample.wav"); // TODO: Generate unique filename
         Serial.println("Recording started.");
     }
 }
 void Application::stopRecording() {
     if (currentState == DeviceState::RECORDING) {
+        storage.stopRecording();
         currentState = DeviceState::ARMED;
         Serial.println("Recording stopped. Device is still armed.");
     }

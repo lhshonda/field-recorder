@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include "config.h"
+#include "storage.h"
 
 class Application {
 public:
@@ -24,6 +25,7 @@ public:
 private:
     // Member variable
     DeviceState currentState;
+    Storage storage;
 
     // Private helper methods
     void handleIdleUpdate();
