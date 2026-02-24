@@ -17,7 +17,7 @@ enum class DeviceState : uint8_t {
 };
 
 // Audio settings
-#define AUDIO_SAMPLE_RATE 16000
+#define WAV_SAMPLE_RATE 44100
 #define AUDIO_BIT_DEPTH 16
 #define AUDIO_CHANNELS 1
 #define AUDIO_BLOCK_SIZE 256

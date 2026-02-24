@@ -23,6 +23,9 @@ public:
     // Query current state
     DeviceState getState() const;
 
+    // Drive Status
+    bool isStorageReady() const;
+
 private:
     // Member variable
     DeviceState currentState;
@@ -44,5 +47,5 @@ private:
     void handleRecordButton();
 
     // Debug Private Method
-    void debugButtonRaw();
+    // void debugButtonRaw();
 };

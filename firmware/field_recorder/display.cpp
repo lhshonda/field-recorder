@@ -51,7 +51,7 @@ void Display::update(Application* pApp) {
     oled.setCursor(0, 40);
 
     // TODO: PLACEHOLDER foor storage status
-    drawStorageStatus(true);
+    drawStorageStatus(pApp->isStorageReady());
 
     // Update the display with new content
     oled.display();
