@@ -6,18 +6,18 @@ Application::Application() : currentState(DeviceState::IDLE),
     lastDebounceMs(0) {
 }
 
-// Placeholder for future setup code, such as initializing SD card, audio hardware, etc.
 void Application::setup() {
     Serial.println("Initializing Field Recorder...");
 
-    // Internal resistors with INPUT_PULLUP means the button will read HIGH when not pressed and LOW when pressed
+    // Activating internal resistors with INPUT_PULLUP for the record button pin
     pinMode(RECORD_BUTTON_PIN, INPUT_PULLUP);
+    
     bool initial = digitalRead(RECORD_BUTTON_PIN);
     lastRecordButtonState = initial;
     stableRecordButtonState = initial;
     lastDebounceMs = millis();
 
-    // ERROR Handling
+    // Error Handling
     if (!storage.init()) {
         Serial.println("Error: Storage initialization failed!");
     }
@@ -29,6 +29,8 @@ void Application::setup() {
 
 // Call specific handler based on recorder state.
 void Application::update() {
+    debugButtonRaw();
+
     switch (currentState) {
         case DeviceState::IDLE: handleIdleUpdate(); break;
         case DeviceState::ARMED: handleArmedUpdate(); break;
@@ -45,15 +47,21 @@ void Application::update() {
 void Application::handleRecordButton() {
     bool reading = digitalRead(RECORD_BUTTON_PIN);
 
+    // lastRecordButtonState tracks the last raw reading from the button pin
     if (reading != lastRecordButtonState) {
         // Reset the debounce timer mark
         lastDebounceMs = millis();
         lastRecordButtonState = reading;
     }
 
+    // stableRecordButtonState is the debounced state
     if ((millis() - lastDebounceMs) > BUTTON_DEBOUNCE_MS) {
         if (stableRecordButtonState != reading) {
             stableRecordButtonState = reading;
+
+            // Debounce Debugging
+            Serial.print("BTN debounced: ");
+            Serial.println(stableRecordButtonState == LOW ? "PRESSED" : "RELASED");
 
             if (stableRecordButtonState == LOW) {
                 if (currentState == DeviceState::IDLE) arm();
@@ -71,19 +79,25 @@ void Application::arm() {
         Serial.println("Device armed. Ready to record.");
     }
 }
+
 void Application::disarm() {
     if (currentState == DeviceState::ARMED) {
         currentState = DeviceState::IDLE;
         Serial.println("Device disarmed. Back to idle.");
     }
 }
+
 void Application::startRecording() {
     if (currentState == DeviceState::ARMED) {
-        currentState = DeviceState::RECORDING;
-        storage.startRecording("sample.wav"); // TODO: Generate unique filename
-        Serial.println("Recording started.");
+        if (storage.startRecording()) {
+            currentState = DeviceState::RECORDING;
+            Serial.println("Recording started.");
+        } else {
+            Serial.println("Error: Failed to start recording!");
+        }
     }
 }
+
 void Application::stopRecording() {
     if (currentState == DeviceState::RECORDING) {
         storage.stopRecording();
@@ -91,12 +105,14 @@ void Application::stopRecording() {
         Serial.println("Recording stopped. Device is still armed.");
     }
 }
+
 void Application::startPlayback() {
     if (currentState == DeviceState::IDLE || currentState == DeviceState::ARMED) {
         currentState = DeviceState::PLAYBACK;
         Serial.println("Playback started.");
     }
 }
+
 void Application::stopPlayback() {
     if (currentState == DeviceState::PLAYBACK) {
         currentState = DeviceState::IDLE;
@@ -109,16 +125,42 @@ DeviceState Application::getState() const {
     return currentState;
 }
 
-// Placeholder methods for handling updates in each state
+// Temporary mock implementation for recording update, simulating audio data writing, this currently writes silence.
+void Application::handleRecordingUpdate() {
+    static uint32_t lastWriteMs = 0;
+
+    // 20ms per audio chunk to mimic real-time recording
+    if (millis() - lastWriteMs < 20) return;
+    lastWriteMs = millis();
+
+    // 16k samples per second * 0.02 seconds = 320 mono samples per chunk
+    int16_t buffer[320] = {0};
+    if (!storage.writeAudioData(buffer, 320)) {
+        Serial.println("Write failed, stopping recording.");
+        stopRecording();
+    }
+}
+
+// Debug Method (Momentary switch is being finnicky)
+void Application::debugButtonRaw() {
+    static uint32_t lastPrintMs = 0;
+    if (millis() - lastPrintMs < 50) return; // 20 Hz print
+    lastPrintMs = millis();
+
+    bool raw = digitalRead(RECORD_BUTTON_PIN);
+    Serial.print("BTN raw=");
+    Serial.println(raw ? "HIGH (released)" : "LOW (pressed)");
+}
+
+
 void Application::handleIdleUpdate() {
     // TODO
 }
+
 void Application::handleArmedUpdate() {
     // TODO
 }
-void Application::handleRecordingUpdate() {
-    // TODO
-}
+
 void Application::handlePlaybackUpdate() {
     // TODO
 }

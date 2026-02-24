@@ -42,4 +42,7 @@ private:
 
     // New helper method to check the record button state and handle debouncing
     void handleRecordButton();
+
+    // Debug Private Method
+    void debugButtonRaw();
 };
