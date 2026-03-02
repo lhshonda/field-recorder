@@ -1,6 +1,7 @@
 #include <Audio.h>
 #include "app.h"
-extern AudioRecordQueue queue1;
+extern AudioRecordQueue queueL;
+extern AudioRecordQueue queueR;
 
 // Constructor initializes the device state to IDLE
 // Initializer list is more efficient here than assigning in the constructor body
@@ -91,7 +92,8 @@ void Application::disarm() {
 void Application::startRecording() {
     if (currentState == DeviceState::ARMED) {
         if (storage.startRecording()) {
-            queue1.begin();
+            queueL.begin();
+            queueR.begin();
             currentState = DeviceState::RECORDING;
             Serial.println("Recording started.");
         } else {
@@ -102,7 +104,8 @@ void Application::startRecording() {
 
 void Application::stopRecording() {
     if (currentState == DeviceState::RECORDING) {
-        queue1.end();
+        queueL.end();
+        queueR.end();
         if (storage.stopRecording()) {
             currentState = DeviceState::ARMED;
             Serial.println("Recording stopped. Device is still armed.");
@@ -121,18 +124,29 @@ DeviceState Application::getState() const {
 // Real Mic Queue (TeensyAudioLibrary)
 void Application::handleRecordingUpdate() {
     // Processes queued audio blocks
-    while (queue1.available() > 0) {
+    while (queueL.available() > 0 && queueR.available() > 0) {
         // Places pointer on oldest block of audio data in the queue
-        int16_t* block = queue1.readBuffer();
-        // Append audio block to WAV file as PCM, includes failure handling. Teensy audio blocks are 128 samples.
-        if (!storage.writeAudioData(block, 128)) {
-            queue1.freeBuffer();
+        int16_t* left = queueL.readBuffer();
+        int16_t* right = queueR.readBuffer();
+
+        int16_t interleaved[256]; // 256 samples total, 128 p/channel
+        for (int i = 0; i < 128; i++) {
+            interleaved[i * 2] = left[i];
+            interleaved[i * 2 + 1] = right[i];
+        }
+
+        // Append audio block to WAV file as PCM, includes failure handling
+        if (!storage.writeAudioData(interleaved, 256)) {
+            queueL.freeBuffer();
+            queueR.freeBuffer();
             Serial.println("Error: Write failed, aborting recording.");
             stopRecording();
             return;
         }
+
         // Returns block memory to queue for reuse
-        queue1.freeBuffer();
+        queueL.freeBuffer();
+        queueR.freeBuffer();
     }
 }
 

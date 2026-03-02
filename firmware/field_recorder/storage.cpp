@@ -72,7 +72,7 @@ bool Storage::startRecording(const char* filename) {
         .fmtId = {'f', 'm', 't', ' '},            // "fmt "
         .fmtSize = 16,                            // 16 for Standard PCM
         .audioFormat = 1,                         // 1 for PCM
-        .numChannels = 1,                         // Mono  
+        .numChannels = AUDIO_CHANNELS,            // Stereo Line-in L/R
         .sampleRate = WAV_SAMPLE_RATE,
         .byteRate = WAV_SAMPLE_RATE * AUDIO_CHANNELS * (AUDIO_BIT_DEPTH / 8),
         .blockAlign = AUDIO_CHANNELS * (AUDIO_BIT_DEPTH / 8),

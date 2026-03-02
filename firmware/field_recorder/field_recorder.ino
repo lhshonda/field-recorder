@@ -2,10 +2,15 @@
 #include "app.h"
 #include "console.h"
 
-// Audio Graph
-AudioInputAnalog adc1(A0);
-AudioRecordQueue queue1;
-AudioConnection patchCord1(adc1, queue1);
+// Audio Shield Line-in L/R
+AudioInputI2S i2s1;
+AudioRecordQueue queueL;
+AudioRecordQueue queueR;
+AudioConnection patchCord1(i2s1, 0, queueL, 0);
+AudioConnection patchCord2(i2s1, 1, queueR, 0);
+
+AudioControlSGTL5000 sgtl5000_1;
+
 
 // Global App Instance
 Application g_app;
@@ -18,7 +23,11 @@ void setup() {
     delay(1000);
 
     // Allocating Audio Blocks
-    AudioMemory(60);
+    AudioMemory(80);
+
+    sgtl5000_1.enable();
+    sgtl5000_1.inputSelect(AUDIO_INPUT_LINEIN);
+    sgtl5000_1.lineInLevel(5);
 
     g_app.setup();
     g_console.init(&g_app);
